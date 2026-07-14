@@ -20,18 +20,6 @@ export interface StreamArticle {
   qualityScore?: number;
 }
 
-/** Reduced article shape emitted by the public delayed briefs stream. */
-export interface ArticleBrief {
-  id: string;
-  title: string;
-  publishedAt: string;
-  source: NewsSource;
-  symbols: string[];
-  sectors: string[];
-  industries: string[];
-  sourceUrl: string;
-}
-
 /** Recognized press-release wire providers. */
 export type PressReleaseProvider = "prnewswire" | "globenewswire" | "businesswire" | "other";
 
@@ -50,17 +38,6 @@ export interface StreamPressRelease {
   aiProcessingUsed?: boolean;
   qualityScore?: number;
   event?: "press_release";
-}
-
-/** Press-release shape emitted by the public delayed briefs stream. */
-export interface PressReleaseBrief extends StreamPressRelease {
-  sourceUrl?: string;
-  isDelayed?: boolean;
-  company_name?: string;
-  provider?: PressReleaseProvider;
-  contentHash?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 /** Any payload the broadcast WebSocket can push. */

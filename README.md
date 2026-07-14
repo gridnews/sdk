@@ -132,17 +132,6 @@ client.stream.pressReleases(
 );
 ```
 
-### Public delayed briefs (no API key)
-
-Delayed teaser streams, capped at the most recent items:
-
-```ts
-const client = new GridNews(); // no key needed
-
-client.stream.briefs({ onArticle: (a) => console.log(a.title) });
-client.stream.pressReleaseBriefs({ onPressRelease: (pr) => console.log(pr.title) });
-```
-
 ### WebSocket (pro tier+)
 
 The WebSocket is a broadcast feed — every article and press release as it is published, with no server-side filtering (filter client-side):
@@ -211,7 +200,7 @@ Rate-limit state is also available on every `GridNewsAPIError` via `error.rateLi
 
 | Capability | Tier |
 | --- | --- |
-| Topics, health/status, delayed briefs | No key required |
+| Topics, health/status | No key required |
 | Article search, symbol news, sources, press releases, usage | Any key |
 | Advanced search filters (symbols/sources/dates) | Basic+ |
 | Quality stats & quality-band articles, sector breakdowns | Basic+ |

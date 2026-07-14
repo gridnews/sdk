@@ -17,8 +17,6 @@ export type {
 export type {
   ArticleStreamHandlers,
   PressReleaseStreamHandlers,
-  BriefsHandlers,
-  PressReleaseBriefsHandlers,
 } from "./streaming/streams.js";
 export * from "./types.js";
 

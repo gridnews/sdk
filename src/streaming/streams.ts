@@ -1,7 +1,5 @@
 import { GridNewsError } from "../errors.js";
 import type {
-  ArticleBrief,
-  PressReleaseBrief,
   StreamArticle,
   StreamConnectedEvent,
   StreamFilterParams,
@@ -39,18 +37,6 @@ export interface PressReleaseStreamHandlers {
   onClose?(): void;
 }
 
-export interface BriefsHandlers {
-  onArticle(article: ArticleBrief): void;
-  onError?(error: unknown): void;
-  onClose?(): void;
-}
-
-export interface PressReleaseBriefsHandlers {
-  onPressRelease(release: PressReleaseBrief): void;
-  onError?(error: unknown): void;
-  onClose?(): void;
-}
-
 export class StreamResource {
   constructor(private readonly config: StreamResourceConfig) {}
 
@@ -64,7 +50,6 @@ export class StreamResource {
         q: params.search,
         delay: params.delay,
       },
-      true,
       (event, data) => {
         if (event === "connected") handlers.onConnected?.(data as StreamConnectedEvent);
         else if (event === "article") handlers.onArticle(data as StreamArticle);
@@ -83,36 +68,9 @@ export class StreamResource {
         search: params.search,
         delay: params.delay,
       },
-      true,
       (event, data) => {
         if (event === "connected") handlers.onConnected?.(data as StreamConnectedEvent);
         else if (event === "press_release") handlers.onPressRelease(data as StreamPressRelease);
-      },
-      handlers,
-    );
-  }
-
-  /** Public delayed article briefs over SSE. No API key required. */
-  briefs(handlers: BriefsHandlers, params: { delay?: number } = {}): SseSubscription {
-    return this.subscribeSse(
-      "/api/news/briefs",
-      { delay: params.delay },
-      false,
-      (event, data) => {
-        if (event === "article") handlers.onArticle(data as ArticleBrief);
-      },
-      handlers,
-    );
-  }
-
-  /** Public delayed press-release briefs over SSE. No API key required. */
-  pressReleaseBriefs(handlers: PressReleaseBriefsHandlers): SseSubscription {
-    return this.subscribeSse(
-      "/api/news/press-releases/briefs",
-      {},
-      false,
-      (event, data) => {
-        if (event === "press_release") handlers.onPressRelease(data as PressReleaseBrief);
       },
       handlers,
     );
@@ -141,24 +99,21 @@ export class StreamResource {
   private subscribeSse(
     path: string,
     query: Record<string, string | number | undefined>,
-    requiresKey: boolean,
     dispatch: (event: string, data: unknown) => void,
     handlers: { onError?(error: unknown): void; onClose?(): void },
   ): SseSubscription {
-    if (requiresKey && !this.config.apiKey) {
+    if (!this.config.apiKey) {
       throw new GridNewsError(`${path} requires an apiKey (pro tier or above).`);
     }
     const url = new URL(path, this.config.streamUrl);
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) url.searchParams.set(key, String(value));
     }
-    const headers: Record<string, string> = {};
-    if (this.config.apiKey) headers["X-API-Key"] = this.config.apiKey;
 
     return connectSse(
       {
         url: url.toString(),
-        headers,
+        headers: { "X-API-Key": this.config.apiKey },
         fetch: this.config.fetch,
         maxReconnects: this.config.maxReconnects,
       },

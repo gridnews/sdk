@@ -10,7 +10,7 @@ import type { HealthResponse, StatusResponse, UsageResult, ApiEnvelope } from ".
 export interface GridNewsOptions {
   /**
    * Your GridNews API key. Optional — without it only the public endpoints
-   * (topics, health/status, delayed briefs) are available.
+   * (topics, health/status) are available.
    */
   apiKey?: string;
   /** REST API base URL. Default: https://api.gridnews.io */

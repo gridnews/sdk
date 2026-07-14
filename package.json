@@ -1,0 +1,56 @@
+{
+  "name": "@gridnews/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the GridNews API — market news REST endpoints and real-time streaming.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gridnews/sdk.git"
+  },
+  "homepage": "https://github.com/gridnews/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/gridnews/issues/issues"
+  },
+  "keywords": [
+    "gridnews",
+    "news",
+    "financial-news",
+    "press-releases",
+    "streaming",
+    "websocket",
+    "sse",
+    "sdk",
+    "api-client"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

@@ -34,7 +34,7 @@ export interface WebSocketSubscription {
 }
 
 /**
- * Connects to the GridNews realtime WebSocket. The stream is broadcast-only:
+ * Connects to the GridNews streaming WebSocket. The stream is broadcast-only:
  * the server pushes article and press-release payloads as JSON text frames and
  * never expects client messages. Requires a pro or enterprise API key.
  */

@@ -17,7 +17,7 @@ export interface GridNewsOptions {
   baseUrl?: string;
   /** Streaming service base URL (SSE). Default: https://stream.gridnews.io */
   streamUrl?: string;
-  /** Realtime WebSocket URL. Default: wss://stream.gridnews.io */
+  /** Streaming WebSocket URL. Default: wss://stream.gridnews.io */
   wsUrl?: string;
   /** Per-request timeout in milliseconds. Default: 15000 */
   timeoutMs?: number;
@@ -43,11 +43,11 @@ export class GridNews {
   readonly news: NewsResource;
   /** Press-release listing and filtering. */
   readonly pressReleases: PressReleasesResource;
-  /** Symbol sentiment, live ticker analysis, and sector breakdowns. */
+  /** Symbol sentiment, on-demand ticker analysis, and sector breakdowns. */
   readonly sentiment: SentimentResource;
   /** Article quality statistics and per-article breakdowns. */
   readonly quality: QualityResource;
-  /** Real-time SSE and WebSocket streams. */
+  /** SSE and WebSocket streams of the latest articles and press releases. */
   readonly stream: StreamResource;
 
   private readonly http: HttpClient;

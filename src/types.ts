@@ -4,7 +4,7 @@ export interface NewsSource {
   name: string;
 }
 
-/** A market news article pushed over the realtime stream. */
+/** A market news article pushed over the news stream. */
 export interface StreamArticle {
   id: string;
   title: string;
@@ -23,7 +23,7 @@ export interface StreamArticle {
 /** Recognized press-release wire providers. */
 export type PressReleaseProvider = "prnewswire" | "globenewswire" | "businesswire" | "other";
 
-/** A press release pushed over the realtime stream. */
+/** A press release pushed over the news stream. */
 export interface StreamPressRelease {
   id: string;
   title: string;
@@ -55,7 +55,7 @@ export interface StreamConnectedEvent {
   };
 }
 
-/** Filters accepted by the authenticated realtime SSE streams. */
+/** Filters accepted by the authenticated SSE streams. */
 export interface StreamFilterParams {
   /** Match against source ids/names, e.g. `["prnewswire"]`. */
   providers?: string[];
@@ -332,7 +332,7 @@ export interface QualityBreakdownResult {
   };
 }
 
-/** Response of `GET /api/sentiment?ticker=` (live analysis; no envelope). */
+/** Response of `GET /api/sentiment?ticker=` (on-demand analysis; no envelope). */
 export interface TickerSentimentResult {
   sentiment: { label: string; score: number };
   marketSentiment?: { bias: string; confidence: number; breakdown?: SentimentBreakdown };

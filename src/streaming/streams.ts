@@ -40,7 +40,7 @@ export interface PressReleaseStreamHandlers {
 export class StreamResource {
   constructor(private readonly config: StreamResourceConfig) {}
 
-  /** Real-time article stream over SSE. Requires a pro or enterprise API key. */
+  /** Breaking-article stream over SSE. Requires a pro or enterprise API key. */
   articles(params: StreamFilterParams, handlers: ArticleStreamHandlers): SseSubscription {
     return this.subscribeSse(
       "/api/news/stream",
@@ -58,7 +58,7 @@ export class StreamResource {
     );
   }
 
-  /** Real-time press-release stream over SSE. Requires a pro or enterprise API key. */
+  /** Breaking press-release stream over SSE. Requires a pro or enterprise API key. */
   pressReleases(params: StreamFilterParams, handlers: PressReleaseStreamHandlers): SseSubscription {
     return this.subscribeSse(
       "/api/news/press-releases/stream",
@@ -83,7 +83,7 @@ export class StreamResource {
    */
   websocket(handlers: WebSocketHandlers<WirePayload>): WebSocketSubscription {
     if (!this.config.apiKey) {
-      throw new GridNewsError("The realtime WebSocket requires an apiKey.");
+      throw new GridNewsError("The streaming WebSocket requires an apiKey.");
     }
     return connectWebSocket<WirePayload>(
       {

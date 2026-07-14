@@ -1,16 +1,16 @@
 # GridNews SDK
 
-The official TypeScript SDK for the [GridNews](https://gridnews.io) API. Fully-typed access to market news articles, press releases, sentiment analysis, and real-time streaming.
+The official TypeScript SDK for the [GridNews](https://gridnews.io) API. Fully-typed access to the latest market news articles, press releases, sentiment analysis, and streaming.
 
 ## Features
 
-- 🔎 Article search with symbol, source, date, sentiment, and quality filters
-- 📰 Press-release listing by symbol, provider, or company
-- 📈 Symbol sentiment and live ticker analysis
-- 🔌 Real-time streaming via Server-Sent Events and WebSocket
-- 🔁 Built-in retries and automatic stream reconnection
-- 🔐 API key authentication with typed rate-limit errors
-- ✅ Strong TypeScript types, zero runtime dependencies, works in Node 18+ and browsers
+- Article search with symbol, source, date, sentiment, and quality filters
+- Press-release listing by symbol, provider, or company
+- Symbol sentiment and on-demand ticker analysis
+- Breaking articles and press releases streamed via Server-Sent Events and WebSocket
+- Built-in retries and automatic stream reconnection
+- API key authentication with typed rate-limit errors
+- Strong TypeScript types, zero runtime dependencies, works in Node 18+ and browsers
 
 ## Installation
 
@@ -82,8 +82,8 @@ const { pressReleases } = await client.pressReleases.list({
 // Aggregated sentiment over a timeframe (pro tier+)
 const daily = await client.sentiment.bySymbol("TSLA", { timeframe: "24h" });
 
-// Live on-demand analysis (pro tier+; slower — analyzes news at request time)
-const live = await client.sentiment.forTicker("TSLA");
+// On-demand analysis (pro tier+; slower — analyzes news at request time)
+const analysis = await client.sentiment.forTicker("TSLA");
 
 // AI sector summaries (basic tier+)
 const sectors = await client.sentiment.sectorBreakdowns();
@@ -105,7 +105,7 @@ const { topics } = await client.news.topics();   // works without an API key
 const usage = await client.usage();              // your tier, limits, usage today
 ```
 
-## Real-Time Streaming
+## Streaming
 
 ### SSE article stream (pro tier+)
 
@@ -114,7 +114,7 @@ const subscription = client.stream.articles(
   { symbols: ["AAPL", "NVDA"], search: "earnings" },
   {
     onConnected: (info) => console.log("Connected:", info.tier),
-    onArticle: (article) => console.log("Live:", article.title),
+    onArticle: (article) => console.log("Breaking:", article.title),
     onError: (error) => console.error(error),
   },
 );
@@ -205,7 +205,7 @@ Rate-limit state is also available on every `GridNewsAPIError` via `error.rateLi
 | Advanced search filters (symbols/sources/dates) | Basic+ |
 | Quality stats & quality-band articles, sector breakdowns | Basic+ |
 | Sentiment (all endpoints), quality breakdown | Pro+ |
-| Real-time SSE streams & WebSocket | Pro+ |
+| Breaking-news SSE streams & WebSocket | Pro+ |
 
 ## Support
 

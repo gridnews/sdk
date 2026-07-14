@@ -23,7 +23,7 @@ export class SentimentResource {
   }
 
   /**
-   * Live sentiment analysis for a ticker. Requires pro tier or above.
+   * On-demand sentiment analysis for a ticker. Requires pro tier or above.
    * This endpoint analyzes news on demand and can take noticeably longer
    * than other calls — consider raising `timeoutMs` if you use it.
    */

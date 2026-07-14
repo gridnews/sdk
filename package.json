@@ -1,6 +1,6 @@
 {
   "name": "@gridnews/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official TypeScript SDK for the GridNews API — the latest market news, press releases, sentiment, and breaking-news streaming.",
   "license": "MIT",
   "repository": {

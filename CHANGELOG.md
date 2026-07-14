@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Broaden npm keywords for search discoverability
+- Add README badges (npm version, downloads, CI, license)
+
 ## 0.1.0
 
 Initial release.

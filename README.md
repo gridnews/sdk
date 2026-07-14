@@ -1,5 +1,10 @@
 # GridNews SDK
 
+[![npm version](https://img.shields.io/npm/v/@gridnews/sdk.svg)](https://www.npmjs.com/package/@gridnews/sdk)
+[![npm downloads](https://img.shields.io/npm/dm/@gridnews/sdk.svg)](https://www.npmjs.com/package/@gridnews/sdk)
+[![CI](https://github.com/gridnews/sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/gridnews/sdk/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/npm/l/@gridnews/sdk.svg)](LICENSE)
+
 The official TypeScript SDK for the [GridNews](https://gridnews.io) API. Fully-typed access to the latest market news articles, press releases, sentiment analysis, and streaming.
 
 ## Features

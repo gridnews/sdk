@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Add `events` resource: `list()` and `get()` over story clusters
+- Clusters report `sourcesCount` (reach) and `independentVoices`
+  (corroboration) separately; only the second is evidence, since outlets
+  that redistribute each other collapse into one voice
+- Each `sources` entry carries the `voiceKey` it resolved to and the signal
+  that matched it, so a caller can see why N outlets counted as M voices
+
 ## 0.1.1
 
 - Broaden npm keywords for search discoverability

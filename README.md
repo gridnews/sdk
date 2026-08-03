@@ -71,6 +71,45 @@ const { articles, sentiment } = await client.news.bySymbol("AAPL", {
 });
 ```
 
+### Story clusters (events)
+
+An event is one story as covered by several outlets, rather than a single
+document.
+
+```ts
+const { events } = await gridnews.events.list({
+  minVoices: 2,      // corroborated stories only
+  hours: 24,
+  limit: 10,
+});
+
+for (const e of events) {
+  console.log(`${e.independentVoices} voices (${e.sourcesCount} outlets): ${e.summary}`);
+}
+
+const detail = await gridnews.events.get(events[0].id);
+for (const v of detail.voices) {
+  console.log(`${v.voiceKey}: ${v.outlets.join(", ")}`);
+}
+```
+
+**`sourcesCount` is reach. `independentVoices` is corroboration.** They are
+different numbers and only the second is evidence. Outlets that redistribute
+each other collapse into one voice, so a story carried by five outlets that
+are all running the same wire copy reports one voice, not five. Each entry in
+`sources` carries the `voiceKey` it resolved to, so you can see why.
+
+A `press_release` event is one issuer's announcement carried by N
+distributors; it always reports a single voice however wide its reach.
+
+There is no `minVoices` default. Single-voice clusters are real distribution
+records and are not hidden — they simply sort last, because `impactScore` is
+driven by `log2(1 + independentVoices)`.
+
+Event ids are not permanent. Clusters are derived and get rebuilt as the
+clustering rules change, so re-resolve from `list()` rather than storing ids
+long-term.
+
 ### Press releases
 
 ```ts

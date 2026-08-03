@@ -1,4 +1,5 @@
 export { GridNews, type GridNewsOptions } from "./client.js";
+export { EventsResource } from "./resources/events.js";
 export {
   GridNewsError,
   GridNewsAPIError,

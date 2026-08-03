@@ -363,3 +363,132 @@ export interface ApiEnvelope<T> {
   tier?: Tier;
   features?: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Story clusters (events)
+// ---------------------------------------------------------------------------
+
+/** How a member outlet was matched into a cluster. */
+export type EventJoinReason =
+  | "seed"
+  | "content_hash"
+  | "title_similarity"
+  | "semantic_similarity";
+
+/** One outlet's coverage of an event. */
+export interface EventSource {
+  title: string;
+  url: string;
+  sourceId: string;
+  sourceName: string;
+  publishedAt: string;
+  /**
+   * The independent voice this outlet speaks with. Equal to `sourceId`
+   * unless it was carrying another member's copy — which is what lets you
+   * see *why* five outlets counted as two voices.
+   */
+  voiceKey: string;
+  /**
+   * Which signal attached this outlet. A cluster built from `content_hash`
+   * matches is a stronger claim than one built from headline similarity.
+   */
+  joinedVia: EventJoinReason;
+  articleId?: string;
+  pressReleaseId?: string;
+}
+
+/** A story, as covered by one or more outlets. */
+export interface NewsEvent {
+  id: string;
+  summary: string;
+  description?: string;
+  /**
+   * `press_release` clusters are one issuer's announcement carried by N
+   * distributors, so they always report a single voice however wide their
+   * reach.
+   */
+  type: "article" | "press_release";
+  /** Id of the article or press release the cluster was seeded from. */
+  rootId?: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  /** Member documents, including repeat filings from one outlet. */
+  entriesCount: number;
+  /** Distinct outlets. This is reach, not evidence. */
+  sourcesCount: number;
+  /**
+   * Distinct outlets that were not redistributing each other. THIS is the
+   * corroboration signal. On a typical corpus only a small minority of
+   * clusters exceed 1, so treating `sourcesCount` as confirmation
+   * overstates it badly.
+   */
+  independentVoices: number;
+  /** log2(1 + independentVoices) x source reputation. Not time-decayed. */
+  impactScore: number;
+  /** Mean reputation of the member outlets, 0-1. */
+  sourceReputation: number;
+  symbols: string[];
+  sectors: string[];
+  industries: string[];
+  /** Member outlets. Truncated to a preview in list responses. */
+  sources: EventSource[];
+}
+
+export interface EventListParams {
+  /** Ticker symbols. Requires basic tier or above. */
+  symbols?: string[];
+  /** ISO date lower bound on `lastSeenAt`. Requires basic tier or above. */
+  from?: string;
+  /** ISO date upper bound on `lastSeenAt`. Requires basic tier or above. */
+  to?: string;
+  /** Convenience window in hours, applied on top of any `from`. */
+  hours?: number;
+  /**
+   * Minimum independent voices. There is no default: single-voice clusters
+   * are real distribution records and are not hidden, they simply sort last
+   * because impact is driven by voice count. Pass 2 for corroborated
+   * stories only.
+   */
+  minVoices?: number;
+  /** Restrict to journalism or to wire releases. Default: all. */
+  type?: "all" | "article" | "press_release";
+  /**
+   * Sort field, `-` prefix for descending. Default `-impactScore`.
+   * Restricted to indexed columns.
+   */
+  orderBy?:
+    | "impactScore"
+    | "-impactScore"
+    | "lastSeenAt"
+    | "-lastSeenAt"
+    | "firstSeenAt"
+    | "-firstSeenAt"
+    | "sourcesCount"
+    | "-sourcesCount"
+    | "independentVoices"
+    | "-independentVoices";
+  limit?: number;
+  page?: number;
+}
+
+export interface EventListResult {
+  events: NewsEvent[];
+  /** Unlike the article endpoints, `total` here is exact. */
+  pagination: Pagination;
+  query: Record<string, unknown>;
+  tier?: Tier;
+  historyLimits?: HistoryLimits;
+}
+
+/** Outlets grouped by the independent voice they speak with. */
+export interface EventVoice {
+  voiceKey: string;
+  outlets: string[];
+}
+
+export interface EventDetailResult {
+  event: NewsEvent;
+  voices: EventVoice[];
+  /** Maximum members the detail endpoint will return. */
+  memberCap: number;
+}

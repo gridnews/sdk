@@ -1,4 +1,5 @@
 import { HttpClient } from "./http.js";
+import { EventsResource } from "./resources/events.js";
 import { NewsResource } from "./resources/news.js";
 import { PressReleasesResource } from "./resources/pressReleases.js";
 import { QualityResource } from "./resources/quality.js";
@@ -41,6 +42,8 @@ const DEFAULT_WS_URL = "wss://stream.gridnews.io";
 export class GridNews {
   /** Article search, per-symbol news, sources, and topics. */
   readonly news: NewsResource;
+  /** Story clusters — the same event as covered by several outlets. */
+  readonly events: EventsResource;
   /** Press-release listing and filtering. */
   readonly pressReleases: PressReleasesResource;
   /** Symbol sentiment, on-demand ticker analysis, and sector breakdowns. */
@@ -73,6 +76,7 @@ export class GridNews {
     });
 
     this.news = new NewsResource(this.http);
+    this.events = new EventsResource(this.http);
     this.pressReleases = new PressReleasesResource(this.http);
     this.sentiment = new SentimentResource(this.http);
     this.quality = new QualityResource(this.http);

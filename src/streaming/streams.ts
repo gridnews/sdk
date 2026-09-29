@@ -4,6 +4,7 @@ import type {
   StreamConnectedEvent,
   StreamFilterParams,
   StreamPressRelease,
+  StreamSocketFilter,
   WirePayload,
 } from "../types.js";
 import { connectSse, type SseSubscription } from "./sse.js";
@@ -77,11 +78,15 @@ export class StreamResource {
   }
 
   /**
-   * Broadcast WebSocket carrying every article and press release as it is
-   * published (no server-side filtering — filter client-side). Requires a pro
-   * or enterprise API key.
+   * WebSocket carrying articles and press releases as they are published,
+   * filtered on the server by `options.filter` and later by `subscribe()`.
+   * The same connection runs Grid AI research requests (`research()`); their
+   * frames never reach `onMessage`. Requires a pro or enterprise API key.
    */
-  websocket(handlers: WebSocketHandlers<WirePayload>): WebSocketSubscription {
+  websocket(
+    handlers: WebSocketHandlers<WirePayload>,
+    options: { filter?: StreamSocketFilter } = {},
+  ): WebSocketSubscription {
     if (!this.config.apiKey) {
       throw new GridNewsError("The streaming WebSocket requires an apiKey.");
     }
@@ -91,6 +96,7 @@ export class StreamResource {
         apiKey: this.config.apiKey,
         webSocketImpl: this.config.webSocketImpl,
         maxReconnects: this.config.maxReconnects,
+        filter: options.filter,
       },
       handlers,
     );

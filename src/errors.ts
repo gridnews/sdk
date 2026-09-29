@@ -1,3 +1,5 @@
+import type { ResearchAnalysis, ResearchSource } from "./types.js";
+
 /** Base class for every error thrown by the SDK. */
 export class GridNewsError extends Error {
   constructor(message: string) {
@@ -49,6 +51,35 @@ export class GridNewsConnectionError extends GridNewsError {
   constructor(message: string, cause?: unknown) {
     super(message);
     this.cause = cause;
+  }
+}
+
+/**
+ * A research request over the WebSocket that ended without a result. `code`
+ * is the server's (`busy`, `rate_limited`, `duplicate_id`, `invalid_request`,
+ * `plan_required`, `unavailable`, `cancelled`, `interrupted`, `not_found`, ...)
+ * or the SDK's own: `timeout`, `stopped`, `connection_closed`. What arrived
+ * before the end is kept on `sources` and `analyses`.
+ */
+export class GridNewsResearchError extends GridNewsError {
+  readonly id?: string;
+  readonly code: string;
+  /** Seconds to wait before sending again, when the server said. */
+  readonly retryAfter?: number;
+  readonly sources: ResearchSource[];
+  readonly analyses: ResearchAnalysis[];
+
+  constructor(
+    code: string,
+    message: string,
+    details: { id?: string; retryAfter?: number; sources?: ResearchSource[]; analyses?: ResearchAnalysis[] } = {},
+  ) {
+    super(message);
+    this.code = code;
+    this.id = details.id;
+    this.retryAfter = details.retryAfter;
+    this.sources = details.sources ?? [];
+    this.analyses = details.analyses ?? [];
   }
 }
 

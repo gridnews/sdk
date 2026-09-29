@@ -12,7 +12,8 @@ The official TypeScript SDK for the [GridNews](https://gridnews.io) API. Fully-t
 - Article search with symbol, source, date, sentiment, and quality filters
 - Press-release listing by symbol, provider, or company
 - Symbol sentiment and on-demand ticker analysis
-- Breaking articles and press releases streamed via Server-Sent Events and WebSocket
+- Breaking articles and press releases streamed via Server-Sent Events and WebSocket, filtered on the server
+- Grid AI research over the WebSocket: sources, cited excerpts and analysis as they are ready
 - Built-in retries and automatic stream reconnection
 - API key authentication with typed rate-limit errors
 - Strong TypeScript types, zero runtime dependencies, works in Node 18+ and browsers
@@ -178,17 +179,51 @@ client.stream.pressReleases(
 
 ### WebSocket (pro tier+)
 
-The WebSocket is a broadcast feed — every article and press release as it is published, with no server-side filtering (filter client-side):
+The WebSocket carries articles and press releases as they are published. Give it a filter and the server applies it from the first item; change it at any time without reconnecting:
 
 ```ts
-const ws = client.stream.websocket({
-  onMessage: (payload) => console.log(payload.title),
-  onClose: (code, reason) => console.log("Closed:", code, reason),
-});
+const ws = client.stream.websocket(
+  {
+    onMessage: (item) => console.log(item.title),
+    onControl: (reply) => console.log(reply.type), // "subscribed", "unsubscribed" or "error"
+    onClose: (code, reason) => console.log("Closed:", code, reason),
+  },
+  { filter: { symbols: ["AAPL", "NVDA"], kind: "article" } },
+);
+
+ws.subscribe({ symbols: ["TSLA"], q: "recall", delay: 30000 }); // replaces the filter
+ws.unsubscribe();                                                // back to every item
 
 // Later:
 ws.stop();
 ```
+
+Filters take `providers`, `symbols`, `q` (free text), `window` (hours), `kind` (`"article"` or `"press_release"`) and `delay` (milliseconds; left out of a `subscribe()`, the current delay is kept). After a reconnect the SDK opens the new connection with the filter you last asked for.
+
+### Grid AI research over the WebSocket (pro tier+)
+
+The same connection runs Grid AI research: send a question, or up to 8 document URLs, and the sources, cited excerpts and analysis come back on the socket as they are ready.
+
+```ts
+const job = ws.research(
+  { query: "Why did the chip export rules change?", depth: "deep", sources: 6 },
+  { onFrame: (frame) => console.log(frame.type) },
+);
+
+const result = await job.result;
+for (const source of result.sources) console.log(source.citation, source.title, source.url);
+for (const analysis of result.analyses) {
+  for (const finding of analysis.findings) console.log(finding.kind, finding.text);
+}
+```
+
+- `depth: "quick"` (default) reads the sources and returns excerpts. `depth: "deep"` also compares them and answers up to 3 `questions`; it needs at least 3 sources, or 2 different `urls`, and a deep request that does not reach enough evidence ends with `analysisSkipped` rather than a thin answer.
+- Research never reaches `onMessage`, and the filter and delay do not apply to it. Frames go to the request's `onFrame` and to the connection's `onResearch` handler, in order and once each.
+- If the connection drops mid-request, the SDK reconnects and reads the request's frames back until it finishes; nothing is sent twice.
+- `job.cancel()` stops a request. `ws.getResearch(id)` returns the frames of any request this API key made in the last hour.
+- A request that ends without a result rejects with `GridNewsResearchError`. Its `code` is the server's (`busy`, `rate_limited`, `invalid_request`, `cancelled`, ...) or `timeout`, `stopped` or `connection_closed`, and `retryAfter` says how long to wait when the server said. Sources that arrived before the end are kept on the error.
+
+Each API key may run 2 requests at once on Pro and 4 on Business, and send 10 a minute. Research also counts against the key's Grid AI allowance.
 
 On Node 18–21 (no global `WebSocket`), pass an implementation:
 
@@ -223,6 +258,7 @@ import {
   GridNewsRateLimitError,      // 429 — rate limit exceeded
   GridNewsAPIError,            // any other non-2xx
   GridNewsConnectionError,     // network failure / timeout
+  GridNewsResearchError,       // a WebSocket research request ended without a result
 } from "@gridnews/sdk";
 
 try {
@@ -250,6 +286,7 @@ Rate-limit state is also available on every `GridNewsAPIError` via `error.rateLi
 | Quality stats & quality-band articles, sector breakdowns | Basic+ |
 | Sentiment (all endpoints), quality breakdown | Pro+ |
 | Breaking-news SSE streams & WebSocket | Pro+ |
+| Grid AI research over the WebSocket | Pro+ |
 
 ## Support
 

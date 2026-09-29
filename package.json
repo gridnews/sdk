@@ -1,6 +1,6 @@
 {
   "name": "@gridnews/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Official TypeScript SDK for the GridNews API — the latest market news, story clusters, press releases, sentiment, and breaking-news streaming.",
   "license": "MIT",
   "repository": {
@@ -31,7 +31,9 @@
     "api-client",
     "typescript",
     "nodejs",
-    "news-clustering"
+    "news-clustering",
+    "research",
+    "ai-research"
   ],
   "type": "module",
   "main": "./dist/index.cjs",

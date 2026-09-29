@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0
+
+- WebSocket filters: `websocket(handlers, { filter })` applies a filter from
+  the first item, `subscribe()` replaces it and `unsubscribe()` clears it,
+  without reconnecting. The filter is re-applied after a reconnect.
+- Grid AI research over the WebSocket: `research()` returns a handle whose
+  `result` resolves with the sources, cited excerpts and analyses;
+  `cancel()` and `getResearch(id)`. Frames are delivered in order and once
+  each, and a request that outlives its connection is read back after the
+  reconnect.
+- New `GridNewsResearchError` with the server's `code` and `retryAfter`.
+- New handlers: `onControl` for filter replies, `onResearch` for research
+  frames, `onOpen`.
+- Changed: `onMessage` now receives news items only. Server replies (which
+  carry a `type` field) go to `onControl`, and research frames to
+  `onResearch`.
+- `WebSocketLike` now includes `send()`.
+
 ## 0.2.0
 
 - Add `events` resource: `list()` and `get()` over story clusters

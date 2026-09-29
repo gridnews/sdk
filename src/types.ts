@@ -67,6 +67,200 @@ export interface StreamFilterParams {
   delay?: number;
 }
 
+/**
+ * What the WebSocket delivers: applied when the connection opens (so nothing
+ * arrives unfiltered first), changed with `subscribe()`, cleared with
+ * `unsubscribe()`, and re-applied after a reconnect.
+ */
+export interface StreamSocketFilter {
+  /** Match against source ids/names, e.g. `["prnewswire"]`. */
+  providers?: string[];
+  /** Ticker symbols, e.g. `["AAPL", "TSLA"]`. */
+  symbols?: string[];
+  /** Free-text search over title/description. */
+  q?: string;
+  /** Only items published within this many hours. */
+  window?: number;
+  /** Only articles or only press releases. Omit for both. */
+  kind?: "article" | "press_release";
+  /**
+   * Delivery delay in milliseconds. Left out of a `subscribe()`, the current
+   * delay is kept.
+   */
+  delay?: number;
+}
+
+/** The server's answers to `subscribe()` and `unsubscribe()`. */
+export type StreamControlMessage =
+  | {
+      type: "subscribed";
+      /** The filter as the server normalized it. */
+      filter: Omit<StreamSocketFilter, "delay">;
+      delay: number;
+    }
+  | { type: "unsubscribed" }
+  | { type: "error"; message: string };
+
+// ---------------------------------------------------------------------------
+// Grid AI research over the WebSocket
+// ---------------------------------------------------------------------------
+
+/**
+ * A Grid AI research request (pro tier+). Give `urls` to read those
+ * documents, or leave them out to search. `depth: "deep"` compares the
+ * documents and answers `questions`; it needs at least 3 sources (or 2
+ * different URLs) and takes longer.
+ */
+export interface ResearchRequest {
+  /**
+   * Your id for the request: 1-64 letters, digits, `.`, `_`, `:` or `-`,
+   * unique per API key for an hour. Generated when omitted.
+   */
+  id?: string;
+  /** What to research, 3-300 characters. */
+  query: string;
+  /** Up to 8 public http(s) document URLs to read instead of searching. */
+  urls?: string[];
+  /** Search the web or news. Default `"web"`. */
+  mode?: "web" | "news";
+  /** Up to 5 domains to search within, e.g. `["sec.gov"]`. */
+  domains?: string[];
+  /** How many search results to read, 1-8. Default 4 (quick) or 6 (deep). */
+  sources?: number;
+  /** Default `"quick"`. */
+  depth?: "quick" | "deep";
+  /** Up to 3 questions for a deep request. Default: the query. */
+  questions?: string[];
+}
+
+export interface ResearchExcerpt {
+  excerptId: string;
+  quote: string;
+  /** Character offsets of the quote in the retrieved document. */
+  start: number;
+  end: number;
+  score: number;
+}
+
+export interface ResearchSource {
+  sourceId: string;
+  citation: number;
+  url: string;
+  title: string;
+  domain: string;
+  publishedAt: string | null;
+  dateBasis: "archive" | "provider" | "page" | "unknown";
+  /** `"clearing"`: an access check was still being worked on when the source was sent. */
+  status: "retrieved" | "failed" | "duplicate" | "clearing" | "discovered";
+  failure?: string;
+  kind?: "release";
+  retrievedAt?: string;
+  contentHash?: string;
+  truncated?: boolean;
+  duplicateOf?: string;
+  excerpts: ResearchExcerpt[];
+}
+
+export interface ResearchAnalysis {
+  analysisId: string;
+  question: string;
+  method: "extractive" | "generated";
+  model: string | null;
+  findings: Array<{ id: string; kind: "observation" | "inference"; text: string; excerptIds: string[] }>;
+  connections: Array<{
+    id: string;
+    relationship: "agreement" | "tension" | "dependency" | "context";
+    text: string;
+    excerptIds: string[];
+  }>;
+  gaps: string[];
+  /** The passages the findings and connections cite, and only those. */
+  excerpts: Array<ResearchExcerpt & { sourceId: string }>;
+  /** `"pending"` is followed by another analysis frame with the same `analysisId`. */
+  generation?: { status: "pending" | "complete" | "failed" | "superseded" | "expired"; reason?: string };
+  support?: { threshold: number; checked: number; removed: number };
+  warnings: string[];
+}
+
+export interface ResearchCounts {
+  sources: number;
+  retrieved: number;
+  failed: number;
+  clearing: number;
+  excerpts: number;
+  analyses: number;
+}
+
+interface ResearchFrameBase {
+  id: string;
+  /** Position in the request's frames, from 0. The SDK delivers them in order, once each. */
+  seq: number;
+}
+
+export type ResearchAcceptedFrame = ResearchFrameBase & {
+  type: "research.accepted";
+  depth: "quick" | "deep";
+  sources: number;
+  questions: number;
+  deadlineAt: string;
+};
+
+export type ResearchSourceFrame = ResearchFrameBase & {
+  type: "research.source";
+  runId: string;
+  source: ResearchSource;
+};
+
+export type ResearchAnalysisFrame = ResearchFrameBase & {
+  type: "research.analysis";
+  runId: string;
+  analysis: ResearchAnalysis;
+};
+
+export type ResearchDoneFrame = ResearchFrameBase & {
+  type: "research.done";
+  runId: string | null;
+  /** `"partial"`: the deadline or a failure ended it early; what was sent stands. */
+  status: "complete" | "partial";
+  counts: ResearchCounts;
+  /** Set when a deep request did not reach its minimums and no analysis was attempted. */
+  analysis?: { status: "skipped"; reason: "insufficient_evidence" };
+  warnings: string[];
+  durationMs: number;
+};
+
+export type ResearchErrorFrame = ResearchFrameBase & {
+  type: "research.error";
+  code: string;
+  message: string;
+  retryAfter?: number;
+  terminal: boolean;
+};
+
+/** One step of a research request, as the server sends it. */
+export type ResearchFrame =
+  | ResearchAcceptedFrame
+  | ResearchSourceFrame
+  | ResearchAnalysisFrame
+  | ResearchDoneFrame
+  | ResearchErrorFrame;
+
+/** A finished research request: every source and the latest version of every analysis. */
+export interface ResearchResult {
+  id: string;
+  runId: string | null;
+  status: "complete" | "partial";
+  depth: "quick" | "deep";
+  /** In citation order. */
+  sources: ResearchSource[];
+  analyses: ResearchAnalysis[];
+  counts: ResearchCounts;
+  /** Set when a deep request did not reach its minimums and no analysis was attempted. */
+  analysisSkipped?: { status: "skipped"; reason: "insufficient_evidence" };
+  warnings: string[];
+  durationMs: number;
+}
+
 /** Response of `GET /api/health` on either service. */
 export interface HealthResponse {
   status: string;
